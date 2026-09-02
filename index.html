@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Para ti</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,500&family=Quicksand:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-a:#050714;
+    --gold:#e7c07a;
+    --rose:#e6a5b8;
+    --ink:#f3efe6;
+    --dim:#9aa0c0;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;overflow:hidden;background:var(--bg-a);color:var(--ink);
+    font-family:'Quicksand',sans-serif;}
+  #stars{position:fixed;inset:0;z-index:0;}
+
+  #escenario{position:fixed;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;
+    padding:4vh 6vw;}
+  .etapa{display:none;flex-direction:column;align-items:center;text-align:center;max-width:92vw;}
+  .etapa.visible{display:flex;animation:aparecer .9s ease;}
+  @keyframes aparecer{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+
+  .intro-texto{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:1.4rem;
+    color:var(--ink);max-width:420px;line-height:1.6;}
+  .iniciar-btn{margin-top:2rem;padding:.85rem 2rem;border-radius:30px;border:1px solid var(--gold);
+    background:transparent;color:var(--gold);font-family:'Quicksand',sans-serif;font-size:.95rem;
+    letter-spacing:.02em;cursor:pointer;transition:.3s;}
+  .iniciar-btn:hover{background:var(--gold);color:#0a0e24;}
+
+  .orbe{width:64px;height:64px;border-radius:50%;cursor:pointer;
+    background:radial-gradient(circle at 35% 35%,#3a2f55,#0a0e24 70%);
+    border:1px solid rgba(231,192,122,.4);opacity:.6;transition:opacity .8s ease;}
+  .orbe.activo{opacity:1;animation:pulso 1.8s ease-in-out infinite;cursor:default;}
+  @keyframes pulso{0%,100%{box-shadow:0 0 0 0 rgba(230,165,184,.35);}50%{box-shadow:0 0 0 18px rgba(230,165,184,0);}}
+
+  #corazonBtn, #corazonGrandeBtn{cursor:pointer;filter:drop-shadow(0 0 14px rgba(230,165,184,.55));
+    transition:transform .3s;}
+  #corazonBtn:hover, #corazonGrandeBtn:hover{transform:scale(1.06);}
+  #grillete{transition:transform .6s ease;transform-origin:45px 34px;}
+  #corazonBtn.abierto #grillete{transform:rotate(-35deg) translate(-2px,-3px);}
+
+  .quiz{background:#0d1130;border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:2rem 2.2rem;
+    max-width:400px;width:100%;text-align:left;}
+  .quiz label{display:block;font-size:.85rem;color:var(--dim);margin:.8rem 0 .3rem;}
+  .quiz input{width:100%;padding:.55rem .7rem;border-radius:8px;border:1px solid rgba(255,255,255,.15);
+    background:#141838;color:var(--ink);font-family:'Quicksand',sans-serif;}
+  .quiz button{margin-top:1.3rem;width:100%;padding:.7rem;border:none;border-radius:8px;background:var(--gold);
+    color:#0a0e24;font-weight:600;cursor:pointer;}
+  #errorMsg{color:var(--rose);font-size:.8rem;height:1.2em;margin-top:.4rem;}
+
+  .carta-caja{max-width:440px;max-height:86vh;overflow-y:auto;text-align:left;padding:.5rem;}
+  .carta-caja p{font-family:'Cormorant Garamond',serif;font-size:1.15rem;line-height:1.8;margin:0 0 1rem;}
+  .gato-telefono{margin:1.6rem auto 0;display:flex;justify-content:center;cursor:pointer;}
+  .mensajito{margin-top:.5rem;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:1.05rem;
+    color:var(--gold);text-align:center;}
+
+  #etVideo video{width:min(90vw,420px);border-radius:14px;border:1px solid rgba(255,255,255,.1);}
+
+  .nombres{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:1.3rem;
+    letter-spacing:.03em;color:var(--gold);margin-bottom:.8rem;}
+
+  #etPropuesta h2{font-family:'Cormorant Garamond',serif;font-size:clamp(1.7rem,6vw,2.4rem);margin:0;}
+  #etPropuesta p{color:var(--dim);margin-top:.9rem;line-height:1.7;max-width:480px;}
+  .botones{margin-top:2rem;display:flex;gap:1.2rem;justify-content:center;position:relative;height:60px;}
+  .botones button{padding:.85rem 1.8rem;border-radius:30px;border:none;font-weight:600;cursor:pointer;font-size:1rem;}
+  #siBtn{background:var(--gold);color:#0a0e24;}
+  #noBtn{background:transparent;border:1px solid var(--dim);color:var(--dim);position:relative;}
+  #resultado{margin-top:1.4rem;font-family:'Cormorant Garamond',serif;font-size:1.3rem;color:var(--rose);min-height:1.6em;}
+</style>
+</head>
+<body>
+
+<canvas id="stars"></canvas>
+
+<div id="escenario">
+
+  <div class="etapa visible" id="etIntro">
+    <p class="intro-texto">Esto significas para mí, y mucho más.</p>
+    <button class="iniciar-btn" id="irBtn">presiona para ver tu regalito</button>
+  </div>
+
+  <div class="etapa" id="etInicio">
+    <div class="orbe" id="orbe"></div>
+  </div>
+
+  <div class="etapa" id="etCorazon">
+    <svg id="corazonBtn" width="130" height="130" viewBox="0 0 100 100">
+      <path d="M50 85 C10 60 5 30 30 18 C42 12 50 22 50 22 C50 22 58 12 70 18 C95 30 90 60 50 85 Z"
+            fill="#e6a5b8" stroke="#f3efe6" stroke-width="2"/>
+      <rect x="42" y="34" width="16" height="14" rx="2" fill="#0a0e24" stroke="#e7c07a" stroke-width="2"/>
+      <path id="grillete" d="M45 34 v-6 a5 5 0 0 1 10 0 v6" fill="none" stroke="#e7c07a" stroke-width="2"/>
+    </svg>
+  </div>
+
+  <div class="etapa" id="etCodigo">
+    <div class="quiz">
+      <label>1. ¿Cuál es la inicial de los nombres de mis peluches?</label>
+      <input id="r1" maxlength="4">
+      <label>2. ¿Cuántas manzanitas mide Hello Kitty?</label>
+      <input id="r2" maxlength="4">
+      <label>3. ¿Cuál es la letra del nombre de la protagonista de Kimi ni Todoke?</label>
+      <input id="r3" maxlength="4">
+      <label>4. ¿Cuántos añitos tiene mi perrito Tommy?</label>
+      <input id="r4" maxlength="4">
+      <button id="verificarBtn">abrir</button>
+      <div id="errorMsg"></div>
+    </div>
+  </div>
+
+  <div class="etapa" id="etCarta">
+    <div class="carta-caja">
+      <p>
+        Bajo un cielo de estrellas donde el tiempo a veces se detiene, lo que siento por ti no cabe
+        en números ni en algoritmos.
+      </p>
+      <p>
+        Si necesitas la clave para abrir el cofre de lo que somos, recuerda que M5S7 es solo la
+        cerradura de una historia que apenas comienza a escribirse.
+      </p>
+      <p>
+        Eres mi refugio, mi certeza en medio del caos, y la única persona con la que quiero descifrar
+        el resto de mi vida.
+      </p>
+      <p>
+        Contigo no busco perfección, busco constancia: seguir eligiéndote un día después del otro,
+        aunque no siempre sepamos cómo hacerlo bien.
+      </p>
+      <p>
+        He pensado mucho en todo lo que hemos vivido, en las conversaciones que se alargaron hasta la
+        madrugada, en las veces que nos reímos de tonterías que ya ni recordamos, y en los silencios
+        que, sin necesidad de palabras, se sintieron como un lugar seguro.
+      </p>
+      <p>
+        También pienso en lo difícil que ha sido a veces, en los días donde no supimos cómo acercarnos,
+        y en cómo, aun así, seguimos aquí, intentándolo. Eso, para mí, ya dice mucho de lo que somos
+        capaces de construir juntos.
+      </p>
+      <p>
+        No busco un cuento perfecto, porque los cuentos perfectos no existen. Busco algo real, algo
+        nuestro, con sus días buenos y sus días grises, pero siempre con la certeza de que quiero
+        seguir aquí, a tu lado, aprendiendo contigo.
+      </p>
+      <p>
+        Gracias por quedarte incluso cuando no fue fácil, por seguir apostando por esto cuando pudiste
+        haberte ido, y por dejarme ser una mejor versión de mí mismo solo con tenerte cerca.
+      </p>
+      <p>Te amo. Esto es para ti. 🩷</p>
+
+      <div class="gato-telefono" id="telefonoBtn">
+        <svg width="110" height="110" viewBox="0 0 150 150">
+          <ellipse cx="75" cy="112" rx="42" ry="26" fill="#f3efe6" stroke="#c9c4b6" stroke-width="2.5"/>
+          <path d="M40 100 Q75 80 110 100 Q100 122 75 126 Q50 122 40 100 Z" fill="#1c1c1c"/>
+          <circle cx="75" cy="62" r="30" fill="#f3efe6" stroke="#c9c4b6" stroke-width="2.5"/>
+          <path d="M48 50 Q75 30 102 50 Q100 66 75 68 Q50 66 48 50 Z" fill="#1c1c1c"/>
+          <path d="M52 42 L44 20 L66 34 Z" fill="#1c1c1c"/>
+          <path d="M98 42 L106 20 L84 34 Z" fill="#1c1c1c"/>
+          <circle cx="65" cy="62" r="3.4" fill="#9bbf74"/>
+          <circle cx="85" cy="62" r="3.4" fill="#9bbf74"/>
+          <path d="M72 70 L78 70 L75 74 Z" fill="#e6a5b8"/>
+          <path d="M75 74 q-4 3 -7 1 M75 74 q4 3 7 1" stroke="#c98198" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+          <ellipse cx="108" cy="96" rx="9" ry="16" fill="#f3efe6" stroke="#c9c4b6" stroke-width="2.5" transform="rotate(18 108 96)"/>
+          <rect x="96" y="58" width="34" height="56" rx="7" fill="#0a0e24" stroke="#e7c07a" stroke-width="2.5" transform="rotate(10 113 86)"/>
+          <rect x="100" y="64" width="26" height="42" rx="2" fill="#141838" transform="rotate(10 113 86)"/>
+          <path d="M108 82 l8 6 -8 6 Z" fill="#e7c07a" transform="rotate(10 113 86)"/>
+        </svg>
+      </div>
+      <p class="mensajito">te llegó un mensajito</p>
+    </div>
+  </div>
+
+  <div class="etapa" id="etVideo">
+    <video id="miVideo" controls preload="none">
+      <source src="mi_mensaje.mp4" type="video/mp4">
+    </video>
+  </div>
+
+  <div class="etapa" id="etSello">
+    <p class="nombres">Matysin x Silivily</p>
+    <svg id="corazonGrandeBtn" width="140" height="140" viewBox="0 0 100 100">
+      <path d="M50 88 C5 60 2 25 28 14 C40 8 50 20 50 20 C50 20 60 8 72 14 C98 25 95 60 50 88 Z"
+            fill="#e6a5b8" stroke="#f3efe6" stroke-width="2"/>
+    </svg>
+  </div>
+
+  <div class="etapa" id="etPropuesta">
+    <h2>¿quieres ser mi novia?</h2>
+    <p>
+      sé que decir esto así puede sonar apresurado, pero no soporto más estar sin estar, andando sin
+      andar. te lo pregunto porque quiero un compromiso de verdad. confío en ti como tú confías en mí,
+      y aunque no hayamos tenido las mejores épocas, sé que esto mejora si seguimos juntos. no quiero
+      la vida que sueño con nadie más que contigo. pinky promise. 🤍
+    </p>
+    <div class="botones">
+      <button id="siBtn">sí, quiero</button>
+      <button id="noBtn">no</button>
+    </div>
+    <div id="resultado"></div>
+  </div>
+
+</div>
+
+<script>
+/* ---------- estrellas ---------- */
+const canvas = document.getElementById('stars');
+const ctx = canvas.getContext('2d');
+let W,H,estrellas=[];
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;
+  estrellas=Array.from({length:Math.floor(W*H/9000)},()=>({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.4+.2,f:Math.random()*0.02+0.005,o:Math.random()}));}
+window.addEventListener('resize',resize); resize();
+function dibujarEstrellas(){
+  ctx.clearRect(0,0,W,H);
+  estrellas.forEach(s=>{
+    s.o += s.f; const alpha = 0.4+0.6*Math.abs(Math.sin(s.o));
+    ctx.fillStyle=`rgba(238,241,255,${alpha})`;
+    ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2); ctx.fill();
+  });
+  requestAnimationFrame(dibujarEstrellas);
+}
+dibujarEstrellas();
+
+/* ---------- control de etapas: una sola pantalla, todo se reemplaza ---------- */
+function mostrarEtapa(id){
+  document.querySelectorAll('.etapa').forEach(e=>e.classList.remove('visible'));
+  document.getElementById(id).classList.add('visible');
+}
+
+/* ---------- intro ---------- */
+document.getElementById('irBtn').addEventListener('click', ()=> mostrarEtapa('etInicio'));
+
+/* ---------- audio ---------- */
+const audio = new Audio('Runaway.mp3');           // la canción de fondo
+audio.loop = true;
+const mensaje = new Audio('mensaje.m4a');          // tu audio de voz
+const orbe = document.getElementById('orbe');
+
+const VOL_NORMAL = 0.3;   // la canción suena suave
+const VOL_DUCK   = 0.12;  // baja aún más mientras se escucha la voz, pero nunca desaparece
+const VOL_VOZ    = 1;     // tu audio de voz suena con más fuerza
+function fadeVolumen(el, destino, ms=700){
+  const inicio = el.volume, t0 = performance.now();
+  function paso(t){
+    const p = Math.min((t-t0)/ms,1);
+    el.volume = inicio + (destino-inicio)*p;
+    if(p<1) requestAnimationFrame(paso);
+  }
+  requestAnimationFrame(paso);
+}
+function bajarCancion(){ if(!audio.paused) fadeVolumen(audio, VOL_DUCK); }
+function subirCancion(){ if(!audio.paused) fadeVolumen(audio, VOL_NORMAL); }
+
+let empezado = false;
+orbe.addEventListener('click', ()=>{
+  if(empezado) return; empezado = true;
+  orbe.classList.add('activo');
+  setTimeout(()=>{
+    audio.volume = VOL_NORMAL;
+    audio.play().catch(()=>{});
+  }, 3000);
+  setTimeout(()=>{
+    mensaje.volume = VOL_VOZ;
+    mensaje.play().catch(()=>{});
+  }, 8000);
+});
+mensaje.addEventListener('play', bajarCancion);
+mensaje.addEventListener('pause', subirCancion);
+mensaje.addEventListener('ended', ()=>{ subirCancion(); mostrarEtapa('etCorazon'); });
+mensaje.addEventListener('error', ()=>{ setTimeout(()=>mostrarEtapa('etCorazon'), 3000); }); // respaldo si falta mensaje.mp3, solo para pruebas
+
+/* ---------- corazón -> código ---------- */
+document.getElementById('corazonBtn').addEventListener('click', ()=> mostrarEtapa('etCodigo'));
+
+async function sha256(msg){
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(msg));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+const HASH_CORRECTO = "0df8368119fe06036a12bb8f36bcc6f2b5c88c60d33bef589686676cb71caca0"; // sha256("M5S7")
+
+document.getElementById('verificarBtn').addEventListener('click', async ()=>{
+  const clave = (document.getElementById('r1').value.trim()[0]||'').toUpperCase()
+              + document.getElementById('r2').value.trim()
+              + (document.getElementById('r3').value.trim()[0]||'').toUpperCase()
+              + document.getElementById('r4').value.trim();
+  const hash = await sha256(clave);
+  const err = document.getElementById('errorMsg');
+  if(hash === HASH_CORRECTO){
+    mostrarEtapa('etCorazon');
+    document.getElementById('corazonBtn').classList.add('abierto');
+    setTimeout(()=> mostrarEtapa('etCarta'), 1100);
+  } else {
+    err.textContent = "no es eso... inténtalo de nuevo";
+  }
+});
+
+/* ---------- gatito con celular -> video, de inmediato ---------- */
+const miVideo = document.getElementById('miVideo');
+document.getElementById('telefonoBtn').addEventListener('click', ()=>{
+  mostrarEtapa('etVideo');
+  miVideo.play().catch(()=>{});
+});
+miVideo.addEventListener('play', bajarCancion);
+miVideo.addEventListener('pause', subirCancion);
+miVideo.addEventListener('ended', ()=>{ subirCancion(); mostrarEtapa('etSello'); });
+
+/* ---------- corazón grande -> propuesta ---------- */
+document.getElementById('corazonGrandeBtn').addEventListener('click', ()=> mostrarEtapa('etPropuesta'));
+
+/* ---------- botón "no" juguetón ---------- */
+const noBtn = document.getElementById('noBtn');
+noBtn.addEventListener('mouseenter', moverNo);
+noBtn.addEventListener('click', (e)=>{ e.preventDefault(); moverNo(); });
+function moverNo(){
+  const cont = noBtn.parentElement.getBoundingClientRect();
+  const x = Math.random()*(cont.width-100)-cont.width/2+50;
+  const y = Math.random()*40-20;
+  noBtn.style.transform = `translate(${x}px,${y}px)`;
+}
+document.getElementById('siBtn').addEventListener('click', ()=>{
+  document.getElementById('resultado').textContent = "te amo. gracias por decir que sí. 🤍✨";
+});
+</script>
+</body>
+</html>
