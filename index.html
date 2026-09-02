@@ -261,9 +261,11 @@ orbe.addEventListener('click', ()=>{
     audio.volume = VOL_NORMAL;
     audio.play().catch(()=>{});
   }, 3000);
-  setTimeout(()=>{
+setTimeout(()=>{
     mensaje.volume = VOL_VOZ;
-    mensaje.play().catch(()=>{});
+    mensaje.play().then(() => {
+      bajarCancion(); // Fuerza a bajar la música justo cuando arranca la voz
+    }).catch(()=>{});
   }, 8000);
 });
 mensaje.addEventListener('play', bajarCancion);
